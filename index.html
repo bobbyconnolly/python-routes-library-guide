@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library System Programming Guide</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #1a1a1a;
+            background: #fff;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            pre { font-size: 14px; }
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.3em;
+        }
+
+        .code-block {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        .info-box {
+            background: #f1f8ff;
+            border-left: 4px solid #0366d6;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .warning-box {
+            background: #fff5b1;
+            border-left: 4px solid #f9c513;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .kw { color: #d73a49; }
+        .str { color: #032f62; }
+        .com { color: #6a737d; }
+        .fun { color: #6f42c1; }
+        .dec { color: #005cc5; }
+        .num { color: #005cc5; }
+
+        code {
+            background: #f6f8fa;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 85%;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        }
+
+        .primer-box {
+            background: #e6f4ea;
+            border-left: 4px solid #34a853;
+            padding: 20px;
+            margin: 24px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .request-response-diagram {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            gap: 15px;
+        }
+
+        .arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #34a853;
+        }
+
+        .arrow-symbol {
+            font-size: 24px;
+        }
+
+        .arrow-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .endpoint {
+            flex: 0 1 auto;
+            padding: 10px;
+            min-width: 120px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .code-snippet {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .code-snippet pre {
+            margin: 0;
+            white-space: pre;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .request-response-diagram {
+                flex-direction: column;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Building a Library Management System</h1>
+    <p><strong>Time: 40 minutes</strong></p>
+
+    <div class="info-box">
+        <strong>About This Guide:</strong><br>
+        We'll build a Flask application for managing a library's books and loans. Focus on implementing the business logic and proper error handling.
+    </div>
+
+    <h2>1. Initial Setup</h2>
+    <p>Start by writing these imports:</p>
+    
+    <div class="code-block">
+<pre><span class="kw">from</span> flask <span class="kw">import</span> Flask, request
+<span class="kw">import</span> sqlite3
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta</pre>
+    </div>
+
+    <div class="info-box">
+        <strong>Understanding the Database Setup:</strong><br>
+        When we use <code>conn.row_factory = sqlite3.Row</code>, it allows us to access columns by name. For example:
+        <div class="code-block">
+<pre>row[<span class="str">'title'</span>]     <span class="com"># With Row factory</span>
+row[0]           <span class="com"># Without Row factory</span></pre>
+        </div>
+    </div>
+
+    <p>Add the Flask app and database connection:</p>
+    
+    <div class="code-block">
+<pre><span class="kw">app</span> = Flask(__name__)
+
+<span class="kw">def</span> <span class="fun">get_db</span>():
+    conn = sqlite3.connect(<span class="str">'library.db'</span>)
+    conn.row_factory = sqlite3.Row
+    <span class="kw">return</span> conn</pre>
+    </div>
+
+    <div class="primer-box">
+        <h3>Understanding Routes: The Request-Response Cycle</h3>
+        
+        <p>Think of a route as a waiter at a restaurant:</p>
+        <div class="request-response-diagram">
+            <div class="endpoint">Browser<br>(Customer)</div>
+            <div class="arrow">
+                <div class="arrow-symbol">→</div>
+                <div class="arrow-label">request</div>
+            </div>
+            <div class="endpoint">Route<br>(Waiter)</div>
+            <div class="arrow">
+                <div class="arrow-symbol">→</div>
+                <div class="arrow-label">response</div>
+            </div>
+            <div class="endpoint">Browser<br>(Customer)</div>
+        </div>
+    
+        <p>1. The browser sends a request - like a customer placing an order</p>
+        <p>2. Your route processes it - like a waiter taking the order to the kitchen</p>
+        <p>3. Your route MUST send back a response - like a waiter bringing back food or an explanation</p>
+    
+        <div class="code-snippet">
+            <pre><span class="kw">@app</span>.route(<span class="str">'/example'</span>)
+<span class="kw">def</span> <span class="fun">example_route</span>():
+    <span class="com"># Every route must return something!</span>
+    
+    <span class="com"># Success case - like bringing the food</span>
+    <span class="kw">return</span> <span class="str">"Here's your book"</span>, <span class="num">200</span>
+    
+    <span class="com"># Error case - like explaining why there's no food</span>
+    <span class="kw">return</span> <span class="str">"Sorry, book not found"</span>, <span class="num">404</span></pre>
+        </div>
+    
+        <p><strong>Key Point:</strong> Just like a waiter can't disappear without a response, your route must always return something to complete the HTTP cycle!</p>
+    </div>
+
+    <h2>2. Adding Books Route</h2>
+    <p>Start with this route declaration (leave space below for implementation):</p>
+
+    <div class="code-block">
+<pre><span class="dec">@app</span>.route(<span class="str">'/add_book'</span>, methods=[<span class="str">'POST'</span>])
+<span class="kw">def</span> <span class="fun">add_book</span>():
+    title = request.form.get(<span class="str">'title'</span>)
+    isbn = request.form.get(<span class="str">'isbn'</span>)
+    author = request.form.get(<span class="str">'author'</span>)
+    
+    <span class="com"># Your implementation here - check these things:</span>
+    <span class="com"># 1. Are all fields provided?</span>
+    <span class="com"># 2. Is ISBN exactly 13 digits?</span>
+    <span class="com"># 3. Handle database errors!</span></pre>
+    </div>
+
+    <div class="warning-box">
+        <strong>ISBN Validation Tip:</strong><br>
+        Check ISBN length using: <code>if not isbn or len(isbn) != 13:</code>
+    </div>
+
+    <h2>3. Creating Loans Route</h2>
+    <p>This route handles checking out books (leave space for implementation):</p>
+
+    <div class="code-block">
+<pre><span class="dec">@app</span>.route(<span class="str">'/create_loan'</span>, methods=[<span class="str">'POST'</span>])
+<span class="kw">def</span> <span class="fun">create_loan</span>():
+    member_id = request.form.get(<span class="str">'member_id'</span>)
+    book_id = request.form.get(<span class="str">'book_id'</span>)
+    
+    <span class="com"># Calculate due date (14 days from now)</span>
+    due_date = datetime.now() + timedelta(days=<span class="num">14</span>)
+    
+    <span class="com"># Your implementation here - check these things:</span>
+    <span class="com"># 1. Does the book exist?</span>
+    <span class="com"># 2. Is it available?</span>
+    <span class="com"># 3. Is the member_id valid?</span></pre>
+    </div>
+
+    <div class="info-box">
+        <strong>Date Handling:</strong><br>
+        Format dates for SQLite using: <code>due_date.strftime('%Y-%m-%d')</code>
+    </div>
+
+    <h2>4. Returns Route</h2>
+    <p>This route processes book returns and calculates fees:</p>
+
+    <div class="code-block">
+<pre><span class="dec">@app</span>.route(<span class="str">'/return_book/&lt;int:loan_id&gt;'</span>, methods=[<span class="str">'POST'</span>])
+<span class="kw">def</span> <span class="fun">return_book</span>(loan_id):
+    <span class="kw">try</span>:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        <span class="com"># Your implementation here:</span>
+        <span class="com"># 1. Get loan details</span>
+        <span class="com"># 2. Calculate days overdue</span>
+        <span class="com"># 3. Calculate fees ($0.50/day)</span>
+        <span class="com"># 4. Update book status</span></pre>
+    </div>
+
+    <h2>Testing Your Code</h2>
+    <div class="code-block">
+<pre><span class="com"># Test adding a book</span>
+curl -X POST http://localhost:5000/add_book \
+     -d <span class="str">"title=Python Guide&isbn=1234567890123&author=Jane"</span>
+
+<span class="com"># Test creating a loan</span>
+curl -X POST http://localhost:5000/create_loan \
+     -d <span class="str">"member_id=1&book_id=1"</span>
+
+<span class="com"># Test returning a book</span>
+curl -X POST http://localhost:5000/return_book/1</pre>
+    </div>
+
+    <div class="warning-box">
+        <strong>Common Mistakes to Avoid:</strong>
+        <ul>
+            <li>Forgetting to commit database changes</li>
+            <li>Not closing database connections</li>
+            <li>Missing error handling for invalid IDs</li>
+            <li>Not validating input data</li>
+        </ul>
+    </div>
+</body>
+</html>
