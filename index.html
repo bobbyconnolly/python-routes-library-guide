@@ -284,19 +284,94 @@ row[0]           <span class="com"># Without Row factory</span></pre>
         <span class="com"># 4. Update book status</span></pre>
     </div>
 
-    <h2>Testing Your Code</h2>
-    <div class="code-block">
-<pre><span class="com"># Test adding a book</span>
-curl -X POST http://localhost:5000/add_book \
-     -d <span class="str">"title=Python Guide&isbn=1234567890123&author=Jane"</span>
-
-<span class="com"># Test creating a loan</span>
-curl -X POST http://localhost:5000/create_loan \
-     -d <span class="str">"member_id=1&book_id=1"</span>
-
-<span class="com"># Test returning a book</span>
-curl -X POST http://localhost:5000/return_book/1</pre>
+<div class="testing-section">
+    <h2>Testing Your Routes</h2>
+    
+    <div class="note">
+        <strong>Note:</strong> This testing section is for when you implement the code in PyCharm. During the paper exam, focus on writing the route logic correctly.
     </div>
+
+    <p>Once you've implemented your routes in PyCharm, you have several ways to test them:</p>
+
+    <div class="method-box">
+        <h3>1. Using the HTML Forms</h3>
+        <p>The simplest way to test is through the web interface:</p>
+        <ol>
+            <li>Run your Flask app (<code>python app.py</code>)</li>
+            <li>Open <code>http://localhost:5000</code> in your browser</li>
+            <li>Use the provided HTML forms to test each route</li>
+        </ol>
+        <p>This is great for basic testing and seeing how users will interact with your system.</p>
+    </div>
+
+    <div class="method-box">
+        <h3>2. Using cURL in Terminal</h3>
+        <p>cURL is a command-line tool for making HTTP requests. It's perfect for testing APIs:</p>
+        
+        <div class="code-block">
+<pre><span class="com"># Add a book</span>
+curl -X POST http://localhost:5000/add_book \
+     -d <span class="str">"title=Python Guide"</span> \
+     -d <span class="str">"isbn=1234567890123"</span> \
+     -d <span class="str">"author=Jane Smith"</span>
+
+<span class="com"># Create a loan</span>
+curl -X POST http://localhost:5000/create_loan \
+     -d <span class="str">"member_id=1"</span> \
+     -d <span class="str">"book_id=1"</span>
+
+<span class="com"># Return a book</span>
+curl -X POST http://localhost:5000/return_book/1
+
+<span class="com"># List member's loans</span>
+curl http://localhost:5000/list_loans/1</pre>
+        </div>
+    </div>
+
+    <div class="method-box">
+        <h3>3. Using Postman</h3>
+        <p>Postman is a popular GUI tool for testing APIs:</p>
+        <ol>
+            <li>Download and install Postman</li>
+            <li>Create a new request</li>
+            <li>Set the HTTP method (POST/GET)</li>
+            <li>Enter the URL (e.g., <code>http://localhost:5000/add_book</code>)</li>
+            <li>For POST requests, add form data in the "Body" tab</li>
+            <li>Click "Send" to test the route</li>
+        </ol>
+        <p>Postman provides a nice interface for seeing requests and responses.</p>
+    </div>
+
+    <div class="method-box">
+        <h3>4. Using Python's requests Library</h3>
+        <p>You can also write Python scripts to test your routes:</p>
+        <div class="code-block">
+<pre><span class="kw">import</span> requests
+
+<span class="com"># Add a book</span>
+response = requests.post(
+    <span class="str">'http://localhost:5000/add_book'</span>,
+    data={
+        <span class="str">'title'</span>: <span class="str">'Python Guide'</span>,
+        <span class="str">'isbn'</span>: <span class="str">'1234567890123'</span>,
+        <span class="str">'author'</span>: <span class="str">'Jane Smith'</span>
+    }
+)
+print(response.text)  <span class="com"># See the response</span></pre>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Testing Tips:</strong>
+        <ul>
+            <li>Start with the HTML forms for basic testing</li>
+            <li>Use cURL or Postman for more detailed API testing</li>
+            <li>Check your print statements in the PyCharm terminal</li>
+            <li>Test both successful cases and error cases</li>
+            <li>Verify database changes using SQLite Browser</li>
+        </ul>
+    </div>
+</div>
 
     <div class="warning-box">
         <strong>Common Mistakes to Avoid:</strong>
